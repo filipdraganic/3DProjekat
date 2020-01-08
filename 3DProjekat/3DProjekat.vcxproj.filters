@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{539f1ecb-98f2-49bb-94a5-f19c5c3699b5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -21,5 +24,54 @@
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shaders\Source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Planeta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\shader.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\shader.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\svetlo_shader.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\svetlo_shader.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\planeta.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\planeta.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\asteroid.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\asteroid.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\skybox.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\skybox.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
