@@ -76,8 +76,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Brze Stvari\Grafika\OpenGLlib\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Brze Stvari\Grafika\OpenGLlib\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Filip\Desktop\Projekti iz grafike\Drugi projekat\OpenGLlib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Filip\Desktop\Projekti iz grafike\Drugi projekat\OpenGLlib\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -106,13 +106,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Brze Stvari\Grafika\OpenGLlib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Filip\Desktop\Projekti iz grafike\Drugi projekat\OpenGLlib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc142-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Brze Stvari\Grafika\OpenGLlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Filip\Desktop\Projekti iz grafike\Drugi projekat\OpenGLlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -163,12 +163,17 @@
     <None Include="shaders\asteroid.vs" />
     <None Include="shaders\planeta.fs" />
     <None Include="shaders\planeta.vs" />
+    <None Include="shaders\planetaShadow.fs" />
+    <None Include="shaders\planetaShadow.vs" />
     <None Include="shaders\shader.fs" />
     <None Include="shaders\shader.vs" />
+    <None Include="shaders\shadowDepth.fs" />
+    <None Include="shaders\shadowDepth.gs" />
+    <None Include="shaders\shadowDepth.vs" />
     <None Include="shaders\skybox.fs" />
     <None Include="shaders\skybox.vs" />
-    <None Include="shaders\svetlo_shader.fs" />
-    <None Include="shaders\svetlo_shader.vs" />
+    <None Include="shaders\zemljaShader.fs" />
+    <None Include="shaders\zemljaShader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -10,8 +10,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include </Brze Stvari/Grafika/3DProjekat/3DProjekat/Shader.h>
-#include </Brze Stvari/Grafika/3DProjekat/3DProjekat/Mesh.h>
+#include </Users/Filip/Desktop/Projekti iz grafike/Drugi projekat/3DProjekat/3DProjekat/Shader.h>
+#include </Users/Filip/Desktop/Projekti iz grafike/Drugi projekat/3DProjekat/3DProjekat/Mesh.h>
 
 #include <string>
 #include <fstream>
@@ -175,6 +175,7 @@ private:
                 Texture texture;
                 texture.id = TextureFromFile(str.C_Str(), this->directory);
                 texture.type = typeName;
+                std::cout << "ovo je tip texture " << typeName << " ovo ja path do texture " << str.C_Str() << ::endl;
                 texture.path = str.C_Str();
                 textures.push_back(texture);
                 textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
@@ -200,15 +201,18 @@ unsigned int TextureFromFile(const char* path, const string& directory, bool gam
             format = GL_RED;
         else if (nrComponents == 3)
             format = GL_RGB;
-        else if (nrComponents == 4)
+        else if (nrComponents == 4){
+            printf("Ova textura je png\n");
+            
             format = GL_RGBA;
 
+        }
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

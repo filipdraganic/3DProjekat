@@ -49,12 +49,6 @@
     <None Include="shaders\shader.fs">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="shaders\svetlo_shader.fs">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\svetlo_shader.vs">
-      <Filter>Source Files\shaders</Filter>
-    </None>
     <None Include="shaders\planeta.vs">
       <Filter>Source Files\shaders</Filter>
     </None>
@@ -71,6 +65,27 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\skybox.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\shadowDepth.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\shadowDepth.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\shadowDepth.gs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\planetaShadow.fs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\planetaShadow.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\zemljaShader.vs">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\zemljaShader.fs">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

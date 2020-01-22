@@ -7,9 +7,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include </Brze Stvari/Grafika/3DProjekat/3DProjekat/Shader.h>
-#include </Brze Stvari/Grafika/3DProjekat/3DProjekat/model.h>
-#include </Brze Stvari/Grafika/3DProjekat/3DProjekat/Planeta.h>
+#include </Users/Filip/Desktop/Projekti iz grafike/Drugi projekat/3DProjekat/3DProjekat/Shader.h>
+#include </Users/Filip/Desktop/Projekti iz grafike/Drugi projekat/3DProjekat/3DProjekat/model.h>
+#include </Users/Filip/Desktop/Projekti iz grafike/Drugi projekat/3DProjekat/3DProjekat/Planeta.h>
 
 #include "stb_image.h"
 
@@ -19,10 +19,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
 unsigned int loadCubemap(vector<std::string> faces);
+void renderScene(const Shader& shader);
 
-
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
 
 const char* vertexShaderSource;
 const char* fragmentShaderSource;
@@ -34,23 +34,21 @@ glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 bool firstMouse = true;
 float yaw = 0.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
 float pitch = 0.0f;
-float lastX = 800.0f / 2.0;
-float lastY = 600.0 / 2.0;
-float fov = 45.0f;
+float lastX = SCR_WIDTH / 2.0;
+float lastY = SCR_HEIGHT / 2.0;
+float fov = 70.0f;
 
+bool ravnazemlja = false;
+bool rotacija = true;
 
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
-struct Kocka {
-    glm::vec3 pos, speed;
-    float size, angle, weight;
-    float life;
-};
+std::vector<Planeta> planete;
+
+bool shadows = false;
 
 
-const int MaxBrojKocki = 10;
-Kocka KockeContainer[MaxBrojKocki];
 unsigned int randomBrojevi[1000] = { 0 };
 int main() {
 
@@ -67,7 +65,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Univerzum", NULL, NULL);
 	if (window == NULL) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -91,67 +89,82 @@ int main() {
 
 
 	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
-    std::vector<Planeta> planete;
     planete.reserve(11);
 
     Shader asteroidShader("shaders/asteroid.vs", "shaders/asteroid.fs");
-    Shader planetaShader("shaders/planeta.vs", "shaders/planeta.fs");
+
+
+    Shader depthShader("shaders/shadowDepth.vs", "shaders/shadowDepth.fs", "shaders/shadowDepth.gs");
+    printf("Ucitani depth shader\n");
+
+    Shader planetaShader("shaders/planetaShadow.vs", "shaders/planetaShadow.fs");
+    printf("Ucitani planeta shader\n");
+    
+    Shader sunceShader("shaders/planeta.vs", "shaders/planeta.fs");
+    printf("Ucitan sunce shader\n");
+
+    Shader zemljaShader("shaders/zemljaShader.vs", "shaders/zemljaShader.fs");
+    printf("Ucitan zemlja shader\n");
+
     Shader skyboxShader("shaders/skybox.vs", "shaders/skybox.fs");
-	
+    
+
+    printf("Ucitani svi shaderi");
+
     //Shader ourShader("shaders/svetlo_shader.vs", "shaders/svetlo_shader.fs");
     Model rockModel("assets/objekti/rock/rock.obj");
 
     Model sunceModel("assets/objekti/planet/sunce/planet.obj");
-    Planeta sunce(planetaShader, "sunce", sunceModel, 0.0f, 100.0f);
+    Planeta sunce(planetaShader, "sunce", sunceModel, 0.0f, 100.0f, 0.5);
     planete.push_back(sunce);
     printf("Ucitano sunce\n");
-    Model merkurModel("assets/objekti/planet/merkur/planet.obj");
-    Planeta merkur(planetaShader, "merkur", merkurModel, 300.0f, 0.40f);
-    planete.push_back(merkur);
-    printf("Ucitan merkur\n");
-    Model veneraModel("assets/objekti/planet/venera/planet.obj");
-    Planeta venera(planetaShader, "venera", veneraModel, 400.0f, 0.90f);
-    planete.push_back(venera);
-    printf("Ucitana venera\n");
     Model zemljaModel("assets/objekti/planet/zemlja/planet.obj");
-    Planeta zemlja(planetaShader, "zemlja", zemljaModel, 500.0f, 1.0f);
+    Planeta zemlja(planetaShader, "zemlja", zemljaModel, 550.0f, 1.0f, 1.0f,23.0f);
     planete.push_back(zemlja);
     printf("Ucitana zemlja\n");
     Model moonModel("assets/objekti/planet/moon/planet.obj");
-    Planeta moon(planetaShader, "mesec", moonModel, 500.0f, 0.30f);
+    Planeta moon(planetaShader, "mesec", moonModel, 550.0f, 0.30f, 1.0f);
     planete.push_back(moon);
     printf("Ucitan mesec\n");
+    Model merkurModel("assets/objekti/planet/merkur/planet.obj");
+    Planeta merkur(planetaShader, "merkur", merkurModel, 400.0f, 0.40f, 1.6f);
+    planete.push_back(merkur);
+    printf("Ucitan merkur\n");
+    Model veneraModel("assets/objekti/planet/venera/planet.obj");
+    Planeta venera(planetaShader, "venera", veneraModel, 450.0f, 0.90f, 1.17f);
+    planete.push_back(venera);
+    printf("Ucitana venera\n");
+    
     Model marsModel("assets/objekti/planet/mars/planet.obj");
-    Planeta mars(planetaShader, "mars", marsModel, 560.0f, 0.60f);
+    Planeta mars(planetaShader, "mars", marsModel, 610.0f, 0.60f, 0.8f, 25.0f);
     planete.push_back(mars);
     printf("Ucitan mars\n");
     Model jupiterModel("assets/objekti/planet/jupiter/planet.obj");
-    Planeta jupiter(planetaShader, "jupiter", jupiterModel, 620.0f, 10.30f);
+    Planeta jupiter(planetaShader, "jupiter", jupiterModel, 670.0f, 10.30f, 0.5f, 3.0f);
     planete.push_back(jupiter);
     printf("Ucitan jupiter\n");
     Model saturnModel("assets/objekti/planet/saturn/planet.obj");
-    Planeta saturn(planetaShader, "saturn", saturnModel, 700.0f, 8.30f);
+    Planeta saturn(planetaShader, "saturn", saturnModel, 750.0f, 8.30f, 0.33f, 27.0f);
     planete.push_back(saturn);
     printf("Ucitan saturn\n");
     Model uranModel("assets/objekti/planet/uran/planet.obj");
-    Planeta uran(planetaShader, "uran", uranModel, 750.0f, 3.30f);
+    Planeta uran(planetaShader, "uran", uranModel, 850.0f, 3.30f, 0.23f, 90.0f);
     planete.push_back(uran);
     printf("Ucitan uran\n");
     Model neptuneModel("assets/objekti/planet/neptune/planet.obj");
-    Planeta neptune(planetaShader, "neptune", neptuneModel, 800.0f, 3.30f);
+    Planeta neptune(planetaShader, "neptune", neptuneModel, 900.0f, 3.30f, 0.16f, 30.0f);
     planete.push_back(neptune);
     printf("Ucitan neptun\n");
+    
+    
     Model planetModel("assets/objekti/planet/planeta/planet.obj");
-    Planeta planet(planetaShader, "planet", planetModel, 900.0f, 4.30f);
+    Planeta planet(planetaShader, "planet", planetModel, 950.0f, 4.30f, 0.5f);
     planete.push_back(planet);
+
     printf("Ucitana random planeta \n");
 
-
-    unsigned int amount = 1000;
-    glm::mat4* modelMatrices;
-    modelMatrices = new glm::mat4[amount];
-    
 
     float skyboxVertices[] = {
         // positions          
@@ -212,57 +225,279 @@ int main() {
 
     vector<std::string> faces
     {
-            "assets/objekti/ama/right.png",
-            "assets/objekti/ama/left.png",
-            "assets/objekti/ama/up.png",
-            "assets/objekti/ama/down.png",
-            "assets/objekti/ama/front.png",
-            "assets/objekti/ama/back.png"
+            "assets/objekti/milkyway/right.png",
+            "assets/objekti/milkyway/left.png",
+            "assets/objekti/milkyway/up.png",
+            "assets/objekti/milkyway/down.png",
+            "assets/objekti/milkyway/front.png",
+            "assets/objekti/milkyway/back.png"
     };
+
     unsigned int cubemapTexture = loadCubemap(faces);
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
 
-    
 
-    //glfwSwapInterval(1);
+    planetaShader.setInt("diffuseTexture", 0);
+    planetaShader.setInt("depthMap", 1);
+
+    const unsigned int SHADOW_WIDTH = 4000, SHADOW_HEIGHT = 4000;
+    unsigned int depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+    // create depth cubemap texture
+    unsigned int depthCubemap;
+    glGenTextures(1, &depthCubemap);                                                //Koristimo depthmapu za generisanje senki
+    glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);                                       
+    for (unsigned int i = 0; i < 6; ++i)                                            //Na svaku od 6 stranica kocke lepimo texturu
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);           
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    // attach depth texture as FBO's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+    glDrawBuffer(GL_NONE);                                                           //Zanima nas samo dubina tako da moramo da kazemo OpenGLu da ne renderuje boje
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+    glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+
+
+
+    unsigned int amount = 1000;
+    glm::mat4* modelMatrices;
+    glm::mat4* stockModelMatrices;
+    float skejlovi[1000] = {};
+    modelMatrices = new glm::mat4[amount];
+    stockModelMatrices = new glm::mat4[amount];
+    srand(glfwGetTime()); // initialize random seed	
+    float radius = 150.0;
+    float offset = 25.0f;
+    for (unsigned int i = 0; i < amount; i++) {
+        glm::mat4 model = glm::mat4(1.0f);
+        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        float angle = (float)i / (float)amount * 360.0f;
+        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float x = sin(angle) + displacement;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float y = displacement * 0.4f; // keep height of asteroid field smaller compared to width of x and z
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float z = cos(angle) + displacement;
+        model = glm::translate(model, glm::vec3(0, y, 0));
+
+        // 2. scale: Scale between 0.05 and 0.25f
+        skejlovi[i] = (rand() % 20) / 100.0f + 0.05;
+        //model = glm::scale(model, glm::vec3(scale));
+
+        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+        float rotAngle = (rand() % 360);
+        //model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+
+        // 4. now add to list of matrices
+        modelMatrices[i] = model;
+        stockModelMatrices[i] = model;
+    }
+
+    // configure instanced array
+    // -------------------------
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+
+    // set transformation matrices as an instance vertex attribute (with divisor 1)
+    // note: we're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
+    // normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    for (unsigned int i = 0; i < rockModel.meshes.size(); i++) {
+        unsigned int VAO = rockModel.meshes[i].VAO;
+        glBindVertexArray(VAO);
+        // set attribute pointers for matrix (4 times vec4)
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
+
+        glBindVertexArray(0);
+    }
+
+
+
+
+
+
+    glfwSwapInterval(1);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	while (!glfwWindowShouldClose(window)) {
-		// input
-		  // -----
+    while (!glfwWindowShouldClose(window)) {
+        // input
+          // -----
 
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
         //std::cout << "delta time = " << deltaTime << std::endl;
-    
-		processInput(window);
 
-		// render
-		// ------
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
+        processInput(window);
 
-    
+        
+
+        // render
+        // ------
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+
+        float aspect = (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT;
+        float near_plane = 10.0f;
+        float far_plane = 1100.0f;
+        glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect , near_plane, far_plane);
+        std::vector<glm::mat4> shadowTransforms;
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+
+     
+
+
+        // Renderuje se Depth mapa 
+
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        depthShader.use();
+        for (unsigned int i = 0; i < 6; i++) {
+            depthShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+        }
+
+
+        depthShader.setFloat("far_plane", far_plane);
+        depthShader.setVec3("lightPos", lightPos);
+        renderScene(depthShader);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+        // Normalno se renderuje scena
+
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        
+        planetaShader.use();
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 
-        
-        planetaShader.use();
+
         planetaShader.setMat4("projection", projection);
         planetaShader.setMat4("view", view);
 
+        planetaShader.setVec3("lightPos", lightPos);
+        planetaShader.setVec3("viewPos", cameraPos);
+        planetaShader.setInt("shadows", shadows); 
+        planetaShader.setFloat("far_plane", far_plane);
+        glActiveTexture(GL_TEXTURE0);
 
-        //PLANETE
-        for (unsigned int i = 0; i < 11; i++) {
-            planete[i].Update();
-            
+        glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+        
+        ////PLANETE
+        for (unsigned int i = 3; i < 11; i++) {
+            planete[i].Update(planetaShader, ravnazemlja, rotacija);
+
         }
+
+
+        zemljaShader.use();
+        zemljaShader.setMat4("projection", projection);
+        zemljaShader.setMat4("view", view);
+        planete[1].Update(zemljaShader, ravnazemlja, rotacija);
+
+        planete[2].Update(zemljaShader, ravnazemlja, rotacija);
+
+        sunceShader.use();
+        sunceShader.setMat4("projection", projection);
+        sunceShader.setMat4("view", view);
+        planete[0].Update(sunceShader, ravnazemlja, rotacija);
+
+
+
+        glm::mat4 model = glm::mat4(1.0f);
+
+        for (int i = 0; i < amount; i++) {
+
+            float displacement = randomBrojevi[i] % (int)offset;
+            model = glm::rotate(stockModelMatrices[i], glm::radians(currentFrame) /2, glm::vec3(0.0f, 1.0f, 0.0f));
+
+            model = glm::translate(model, glm::vec3(950.0f, 0, 0));
+
+            model = glm::rotate(model, glm::radians(-currentFrame)-randomBrojevi[i], glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::translate(model, glm::vec3(displacement+50, 0, displacement+50));
+            model = glm::rotate(model, glm::radians(currentFrame) + displacement+500, glm::vec3(1.0f, 1.0f, 0.0f));
+
+            modelMatrices[i] = glm::scale(model, glm::vec3(skejlovi[i]));
+
+        }
+
+        unsigned int buffer;
+        glGenBuffers(1, &buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+
+
+        for (unsigned int i = 0; i < rockModel.meshes.size(); i++) {
+            unsigned int VAO = rockModel.meshes[i].VAO;
+            glBindVertexArray(VAO);
+            // set attribute pointers for matrix (4 times vec4)
+            glEnableVertexAttribArray(3);
+            glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+            glEnableVertexAttribArray(4);
+            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+            glEnableVertexAttribArray(5);
+            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+            glEnableVertexAttribArray(6);
+            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+            glVertexAttribDivisor(3, 1);
+            glVertexAttribDivisor(4, 1);
+            glVertexAttribDivisor(5, 1);
+            glVertexAttribDivisor(6, 1);
+
+            glBindVertexArray(0);
+        }
+
+
+        asteroidShader.use();
+        asteroidShader.setInt("texture_diffuse1", 0);
+        asteroidShader.setMat4("projection", projection);
+        asteroidShader.setMat4("view", view);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, rockModel.textures_loaded[0].id); // note: we also made the textures_loaded vector public (instead of private) from the model class.
+        for (unsigned int i = 0; i < rockModel.meshes.size(); i++) {
+            glBindVertexArray(rockModel.meshes[i].VAO);
+            glDrawElementsInstanced(GL_TRIANGLES, rockModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, amount);
+            glBindVertexArray(0);
+        }
+
+        
+
+       //sunce.Update();
 
 
         // SKYBOX
@@ -281,57 +516,11 @@ int main() {
 
 
 
-        ////ASTEROIDI OKO RANDOM PLANETE
-        //for (unsigned int i = 0; i < amount; i++) {
+      
 
-        //    glm::mat4 model = glm::mat4(1.0f);
 
-        //    model = glm::rotate(model, glm::radians(currentFrame), glm::vec3(0.0f, 1.0f, 0.0f));
-        //    model = glm::translate(model, glm::vec3(900.0f, 0.0f, 0.0f));
-        //    model = glm::rotate(model, glm::radians((float)randomBrojevi[i]), glm::vec3(0.0f, 1.0f, 0.0f));
-        //    model = glm::translate(model, glm::vec3(50.0f + (randomBrojevi[i] % 20), 0.0f, 0.0f));
-        //    model = glm::scale(model, glm::vec3(randomBrojevi[i] % 50 /50.0f));
-        //
-        //    modelMatrices[i] = model;
 
-        //}
-        //unsigned int buffer;
-        //glGenBuffers(1, &buffer);
-        //glBindBuffer(GL_ARRAY_BUFFER, buffer);
-        //glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
-
-        //asteroidShader.use();
-        //asteroidShader.setMat4("projection", projection);
-        //asteroidShader.setMat4("view", view);
-        //asteroidShader.setInt("texture_diffuse1", 0);
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, rockModel.textures_loaded[0].id);
-
-        //for (unsigned int i = 0; i < rockModel.meshes.size(); i++) {
-        //    unsigned int VAO = rockModel.meshes[i].VAO;
-        //    glBindVertexArray(VAO);
-        //    // set attribute pointers for matrix (4 times vec4)
-        //    glEnableVertexAttribArray(3);
-        //    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-        //    glEnableVertexAttribArray(4);
-        //    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-        //    glEnableVertexAttribArray(5);
-        //    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-        //    glEnableVertexAttribArray(6);
-        //    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
-        //    glVertexAttribDivisor(3, 1);
-        //    glVertexAttribDivisor(4, 1);
-        //    glVertexAttribDivisor(5, 1);
-        //    glVertexAttribDivisor(6, 1);
-
-        //    glBindVertexArray(0);
-        //    
-        //    
-        //    glBindVertexArray(rockModel.meshes[i].VAO);
-        //    glDrawElementsInstanced(GL_TRIANGLES, rockModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, amount);
-        //    glBindVertexArray(0);
-        //}
+       
 
 
 
@@ -362,8 +551,32 @@ int main() {
 
 
 
+void renderScene(const Shader& shader) {
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+    glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+    
+    
+  /*  shader.setMat4("projection", projection);
+    shader.setMat4("view", view);*/
+
+
+    //PLANETE
+    for (unsigned int i = 10; i > 3; i--) {
+        
+        planete[i].Update(shader, ravnazemlja, rotacija);
+
+       
+    }
+
+
+
+}
+
+
+
 void processInput(GLFWwindow* window) {
-    float cameraSpeed = 0.1f;
+    float cameraSpeed = 0.5f;
 
 
 
@@ -389,6 +602,18 @@ void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
    
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+        ravnazemlja = false;
+       
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+        ravnazemlja = true;
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        if (rotacija == true) {
+            rotacija = false;
+        }
+        else rotacija = true;
+    }
 
 
 }
@@ -454,7 +679,7 @@ unsigned int loadCubemap(vector<std::string> faces) {
         unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
         if (data) {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+                0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data
             );
             printf("Ucitana %d-ta slika po redu \n", i);
             stbi_image_free(data);

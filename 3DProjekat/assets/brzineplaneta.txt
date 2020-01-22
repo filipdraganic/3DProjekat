@@ -1,0 +1,11 @@
+	km/s
+merkur 	47	1.6
+venera 	35	1.17
+zemlja 	30	1
+mesec 	24	0.8
+mars	
+jupiter 13	0.5
+saturn 	10	0.33
+uran 	7	0.23
+neptun 	5	0.16
+

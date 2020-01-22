@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include </Brze Stvari/Grafika/3DProjekat/3DProjekat/Shader.h>
+#include </Users/Filip/Desktop/Projekti iz grafike/Drugi projekat/3DProjekat/3DProjekat/Shader.h>
 
 #include <string>
 #include <fstream>
